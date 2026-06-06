@@ -6,6 +6,13 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useClientTokenSnapshot } from "@/lib/useClientTokenSnapshot";
 
+const navLinks = [
+  { href: "/#comment", label: "Comment ça marche" },
+  { href: "/#recompenses", label: "Récompenses" },
+  { href: "/formations", label: "Formations" },
+  { href: "/contact", label: "Contact" },
+];
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { hasToken: isAuthenticated } = useClientTokenSnapshot();
@@ -13,32 +20,36 @@ export function SiteHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
       <nav className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 md:h-16">
-        <Link href="/" className="flex items-center">
-          <Image src="/eig-logo.svg" alt="EIG" width={108} height={35} priority className="md:h-auto md:w-auto" />
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/eig-logo.svg" alt="EIG Ambassadors" width={108} height={35} priority />
         </Link>
 
         <div className="hidden items-center gap-5 text-sm font-medium text-slate-700 md:flex">
-          <Link href="/#pourquoi">Pourquoi</Link>
-          <Link href="/#qui">Qui peut devenir</Link>
-          <Link href="/#comment">Comment ca marche</Link>
-          <Link href="/#commissions">Commissions</Link>
-          <Link href="/#avantages">Avantages</Link>
-          <Link href="/formations">Formations</Link>
-          <Link href="/contact">Contact</Link>
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="transition-colors hover:text-eig-blue">
+              {link.label}
+            </Link>
+          ))}
           {!isAuthenticated ? (
             <>
               <Link
                 href="/partenaires/inscription"
-                className="rounded-md bg-[#0b2e7a] px-3 py-2 text-white"
+                className="rounded-xl bg-eig-blue px-4 py-2 text-white transition-colors hover:bg-eig-blue-light"
               >
-                Rejoindre
+                S&apos;inscrire
               </Link>
-              <Link href="/connexion" className="rounded-md border border-slate-300 px-3 py-2">
-                Connexion
+              <Link
+                href="/connexion"
+                className="rounded-xl border border-slate-300 px-4 py-2 transition-colors hover:border-eig-blue hover:text-eig-blue"
+              >
+                Se connecter
               </Link>
             </>
           ) : (
-            <Link href="/dashboard" className="rounded-md bg-[#0b2e7a] px-3 py-2 text-white">
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-eig-blue px-4 py-2 text-white transition-colors hover:bg-eig-blue-light"
+            >
               Mon espace
             </Link>
           )}
@@ -46,7 +57,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 md:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label="Ouvrir le menu"
         >
@@ -57,51 +68,26 @@ export function SiteHeader() {
       {open ? (
         <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
           <div className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            <Link href="/formations" onClick={() => setOpen(false)}>
-              Formations
-            </Link>
-            <Link href="/contact" onClick={() => setOpen(false)}>
-              Contact
-            </Link>
-            <Link href="/#pourquoi" onClick={() => setOpen(false)}>
-              Pourquoi
-            </Link>
-            <Link href="/#qui" onClick={() => setOpen(false)}>
-              Qui peut devenir
-            </Link>
-            <Link href="/#comment" onClick={() => setOpen(false)}>
-              Comment ca marche
-            </Link>
-            <Link href="/#commissions" onClick={() => setOpen(false)}>
-              Commissions
-            </Link>
-            <Link href="/#avantages" onClick={() => setOpen(false)}>
-              Avantages
-            </Link>
-            <Link href="/#outils" onClick={() => setOpen(false)}>
-              Outils
-            </Link>
-            <Link href="/#rejoindre" onClick={() => setOpen(false)}>
-              Rejoindre
-            </Link>
-            <Link href="/#final" onClick={() => setOpen(false)}>
-              Final
-            </Link>
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>
+                {link.label}
+              </Link>
+            ))}
             {!isAuthenticated ? (
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-col gap-2">
                 <Link
                   href="/partenaires/inscription"
                   onClick={() => setOpen(false)}
-                  className="rounded-md bg-[#0b2e7a] px-3 py-2 text-white"
+                  className="rounded-xl bg-eig-blue px-4 py-2 text-center text-white"
                 >
-                  Rejoindre
+                  Devenir Ambassadeur
                 </Link>
                 <Link
                   href="/connexion"
                   onClick={() => setOpen(false)}
-                  className="rounded-md border border-slate-300 px-3 py-2"
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-center"
                 >
-                  Connexion
+                  Se connecter
                 </Link>
               </div>
             ) : (
@@ -109,7 +95,7 @@ export function SiteHeader() {
                 <Link
                   href="/dashboard"
                   onClick={() => setOpen(false)}
-                  className="inline-flex rounded-md bg-[#0b2e7a] px-3 py-2 text-white"
+                  className="inline-flex w-full justify-center rounded-xl bg-eig-blue px-4 py-2 text-white"
                 >
                   Mon espace
                 </Link>

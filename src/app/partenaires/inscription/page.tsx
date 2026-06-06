@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
+import { homePathForRole, roleFromLoginResponse, saveAuthSession } from "@/lib/auth/session";
+import { isDemoMode } from "@/lib/demo/config";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -38,12 +40,18 @@ export default function RegisterPage() {
       password: form.password,
     };
 
-    const res = await apiRequest("/auth/register", {
+    const res = await apiRequest<{ token?: string; message?: string; user?: { role?: string } }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),
     });
     if (res.error) {
       setError(res.error);
+      return;
+    }
+    if (isDemoMode && res.data?.token) {
+      const role = roleFromLoginResponse(res.data.user);
+      saveAuthSession(res.data.token, role);
+      router.push(homePathForRole(role));
       return;
     }
     router.push(`/verification?email=${encodeURIComponent(form.email)}`);

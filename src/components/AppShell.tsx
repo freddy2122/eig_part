@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
+import { DemoBanner } from "@/components/DemoBanner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
@@ -27,11 +28,17 @@ export function AppShell({ children }: AppShellProps) {
   }, [pathname]);
 
   if (isPlainLayout) {
-    return <main className="min-h-screen">{children}</main>;
+    return (
+      <>
+        <DemoBanner />
+        <main className="min-h-screen">{children}</main>
+      </>
+    );
   }
 
   return (
     <>
+      <DemoBanner />
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl px-4 pt-20 pb-24 md:pt-24 md:pb-8">{children}</main>
       <footer id="contact" className="border-t border-slate-200">

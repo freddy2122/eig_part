@@ -1,92 +1,79 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
+import { EarningsHistoryList } from "@/components/dashboard/EarningsHistoryList";
+import { EarningsSummary } from "@/components/dashboard/EarningsSummary";
+import { Button } from "@/components/ui/Button";
+import type { EarningsResponse } from "@/lib/ambassador";
 import { apiRequest } from "@/lib/api";
 
-type CommissionItem = {
-  period_month?: string;
-  gross_amount?: number;
-  validated_enrollments?: number;
-  status?: string;
-  created_at?: string;
-};
-
-type CommissionsResponse = {
-  commissions?: CommissionItem[];
-  meta?: {
-    current_page?: number;
-    last_page?: number;
-    per_page?: number;
-    total?: number;
-  };
-};
-
 export default function CommissionsPage() {
-  const [payload, setPayload] = useState<CommissionsResponse | null>(null);
+  const [data, setData] = useState<EarningsResponse | null>(null);
   const [error, setError] = useState("");
-  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiRequest<CommissionsResponse>(`/me/commissions?page=${page}&per_page=10`, {}, true).then((res) => {
+    apiRequest<EarningsResponse>("/me/earnings?limit=30", {}, true).then((res) => {
       if (res.error) setError(res.error);
-      else setPayload(res.data ?? null);
+      else setData(res.data ?? null);
+      setLoading(false);
     });
-  }, [page]);
+  }, []);
+
+  const earnings = data?.earnings ?? { available: 0, pending: 0, paid: 0 };
 
   return (
-    <div className="rounded-xl bg-white border border-slate-200 p-6">
-      <h1 className="text-xl font-semibold text-[#0b2e7a]">Commissions</h1>
-      <p className="mt-1 text-sm text-slate-600">Total enregistrements: {payload?.meta?.total ?? 0}</p>
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+    <div className="space-y-5 pb-20 lg:pb-0">
+      <section className="rounded-eig-lg border border-slate-200 bg-white p-6 shadow-eig">
+        <h1 className="text-2xl font-extrabold text-eig-blue">Mes Gains</h1>
+        <p className="mt-1 text-sm text-eig-muted">Suis tes revenus disponibles, en attente et déjà versés.</p>
+      </section>
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="py-2 pr-3">Période</th>
-              <th className="py-2 pr-3">Montant brut</th>
-              <th className="py-2 pr-3">Inscriptions validées</th>
-              <th className="py-2 pr-3">Statut</th>
-              <th className="py-2">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(payload?.commissions ?? []).map((item, index) => (
-              <tr key={`${item.period_month ?? "period"}-${index}`} className="border-b border-slate-100">
-                <td className="py-2 pr-3">{item.period_month || "-"}</td>
-                <td className="py-2 pr-3">{(item.gross_amount ?? 0).toLocaleString("fr-FR")} FCFA</td>
-                <td className="py-2 pr-3">{item.validated_enrollments ?? 0}</td>
-                <td className="py-2 pr-3 capitalize">{item.status || "-"}</td>
-                <td className="py-2">{item.created_at ? new Date(item.created_at).toLocaleDateString("fr-FR") : "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="mt-4 flex items-center justify-between">
-        <p className="text-xs text-slate-500">
-          Page {payload?.meta?.current_page ?? page} / {payload?.meta?.last_page ?? 1}
-        </p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={(payload?.meta?.current_page ?? page) <= 1}
-          >
-            Précédent
-          </button>
-          <button
-            type="button"
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50"
-            onClick={() => setPage((p) => p + 1)}
-            disabled={(payload?.meta?.current_page ?? page) >= (payload?.meta?.last_page ?? 1)}
-          >
-            Suivant
-          </button>
-        </div>
-      </div>
-      {(payload?.commissions?.length ?? 0) === 0 ? <p className="mt-3 text-sm text-slate-600">Aucune commission pour le moment.</p> : null}
+      {error ? (
+        <section className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</section>
+      ) : null}
+
+      {loading ? (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
+          Chargement de tes gains...
+        </section>
+      ) : (
+        <>
+          <EarningsSummary
+            available={earnings.available ?? 0}
+            pending={earnings.pending ?? 0}
+            paid={earnings.paid ?? 0}
+          />
+
+          <section className="rounded-eig-lg border border-slate-200 bg-white p-5 shadow-eig">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-eig-blue">Demander un retrait</h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  {(earnings.available ?? 0) > 0
+                    ? "Tu peux retirer tes gains disponibles via Mobile Money."
+                    : "Aucun gain disponible pour le moment."}
+                </p>
+              </div>
+              {(earnings.available ?? 0) > 0 ? (
+                <Button href="/dashboard/paiements" variant="secondary" size="md" className="gap-2">
+                  Demander un retrait
+                  <ArrowRight size={16} />
+                </Button>
+              ) : (
+                <span className="text-sm text-slate-500">Solde insuffisant</span>
+              )}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-lg font-bold text-eig-blue">Historique</h2>
+            <EarningsHistoryList items={data?.history ?? []} />
+          </section>
+        </>
+      )}
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import { isDemoMode } from "@/lib/demo/config";
+import { mockApiRequest } from "@/lib/demo/mockApi";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   "https://api.partnext.org/api/v1";
@@ -6,6 +9,8 @@ export type ApiResult<T> = {
   data?: T;
   error?: string;
 };
+
+export { isDemoMode };
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -20,6 +25,7 @@ export function setToken(token: string): void {
 export function clearToken(): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem("auth_token");
+  window.localStorage.removeItem("auth_role");
 }
 
 export async function apiRequest<T>(
@@ -27,6 +33,10 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   auth = false
 ): Promise<ApiResult<T>> {
+  if (isDemoMode) {
+    return mockApiRequest<T>(path, options);
+  }
+
   try {
     const headers = new Headers(options.headers);
     headers.set("Accept", "application/json");
@@ -61,6 +71,6 @@ export async function apiRequest<T>(
     }
     return { data: json as T };
   } catch {
-    return { error: "Serveur API injoignable." };
+      return { error: "Impossible de joindre le serveur. Vérifiez que l'API est démarrée." };
   }
 }
